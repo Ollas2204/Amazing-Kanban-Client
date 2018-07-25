@@ -11,7 +11,7 @@
       <div class="col s12 m6 l3">
         <div class="card">
           <div class="card-panel red">
-            BACKLOG
+            BACK-LOG
           </div>
           <div class="card" id="card" v-for="(item, id) in backlog">
             <div class="card-panel light">
@@ -22,9 +22,9 @@
               <p>In Charge: {{item.assign}}</p>
             </div>
             <div class="card-action">
-              <a href="#" class="left">test</a>
-              <a href="#">test</a>
-              <a @click="test(item,'todo')" class="right">To Todo</a>
+              <a href="#" class="left">Back</a>
+              <a href="#">Delete</a>
+              <a @click="test(item,'todo')" class="right">Next</a>
             </div>
           </div>
         </div>
@@ -43,9 +43,9 @@
               <p>In Charge: {{item.assign}}</p>
             </div>
             <div class="card-action">
-              <a @click="test(item,'backlog')" class="left">test</a>
-              <a href="#">test</a>
-              <a@click="test(item,'doing')" class="right">test</a>
+              <a @click="test(item,'backlog')" class="left">Back</a>
+              <a href="#">Delete</a>
+              <a @click="test(item,'doing')" class="right">Next</a>
             </div>
           </div>
         </div>
@@ -64,9 +64,9 @@
               <p>In Charge: {{item.assign}}</p>
             </div>
             <div class="card-action">
-              <a @click="test(item,'todo')" class="left">test</a>
-              <a href="#">test</a>
-              <a @click="test(item,'done')" class="right">test</a>
+              <a @click="test(item,'todo')" class="left">Back</a>
+              <a href="#">Delete</a>
+              <a @click="test(item,'done')" class="right">Next</a>
             </div>
           </div>
         </div>
@@ -85,9 +85,9 @@
               <p>In Charge: {{item.assign}}</p>
             </div>
             <div class="card-action">
-              <a @click="test(item,'doing')" class="left">test</a>
-              <a href="#">test</a>
-              <a href="#" class="right">test</a>
+              <a @click="test(item,'doing')" class="left">Back</a>
+              <a href="#">Delete</a>
+              <a href="#" class="right">Next</a>
             </div>
           </div>
         </div>
@@ -105,7 +105,10 @@
 </template>
 <script>
 // @ is an alias to /src
-import { kanban, db } from "../firebase"
+import {
+  kanban,
+  db
+} from "../firebase"
 export default {
   data: () => ({
     backlog: [],
@@ -115,32 +118,34 @@ export default {
     bottomPosition: 'md-bottom-right',
     showDialog: false
   }),
-  created (){
+  created() {
     let self = this
     kanban.on('value', function(snapshot) {
-      self.backlog= []
-      self.todo= []
-      self.doing= []
-      self.done= []
-      Object.entries(snapshot.val()).map(e=>{
-        var value = Object.assign({},{id:e[0]},e[1])
-        if(value.status == 'backlog'){
+      self.backlog = []
+      self.todo = []
+      self.doing = []
+      self.done = []
+      Object.entries(snapshot.val()).map(e => {
+        var value = Object.assign({}, {
+          id: e[0]
+        }, e[1])
+        if (value.status == 'backlog') {
           self.backlog.push(value)
-        }else if (value.status == 'todo') {
+        } else if (value.status == 'todo') {
           self.todo.push(value)
-        }else if (value.status == 'doing') {
+        } else if (value.status == 'doing') {
           self.doing.push(value)
-        }else {
+        } else {
           self.done.push(value)
         }
       })
-  });
+    });
   },
   methods: {
     modalDialog: function() {
       this.showDialog = !this.showDialog
     },
-    test: function (item,to) {
+    test: function(item, to) {
       kanban.child(item.id).set({
         title: item.title,
         point: item.point,
