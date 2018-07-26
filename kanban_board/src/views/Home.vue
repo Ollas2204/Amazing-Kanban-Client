@@ -2,98 +2,35 @@
 <div class="header">
   <nav>
     <div class="nav-wrapper">
-      <a href="#" class="brand-logo center">Kanban Wanna Be</a>
+      <a class="brand-logo center">Kanban Wanna Be</a>
       <ul id="nav-mobile" class="left hide-on-med-and-down"></ul>
     </div>
   </nav>
   <div class="columns">
     <div class="row">
-      <div class="col s12 m6 l3">
-        <div class="card">
-          <div class="card-panel red">
-            BACK-LOG
-          </div>
-          <div class="card" id="card" v-for="(item, id) in backlog">
-            <div class="card-panel light">
-              {{item.title}}
-            </div>
-            <div class="card-content">
-              <p>Point: {{item.point}}</p>
-              <p>In Charge: {{item.assign}}</p>
-            </div>
-            <div class="card-action">
-              <a href="#" class="left">Back</a>
-              <a href="#">Delete</a>
-              <a @click="test(item,'todo')" class="right">Next</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col s12 m6 l3">
-        <div class="card">
-          <div class="card-panel yellow">
-            TODO
-          </div>
-          <div class="card" id="card" v-for="(item, id) in todo">
-            <div class="card-panel light">
-              {{item.title}}
-            </div>
-            <div class="card-content">
-              <p>Point: {{item.point}}</p>
-              <p>In Charge: {{item.assign}}</p>
-            </div>
-            <div class="card-action">
-              <a @click="test(item,'backlog')" class="left">Back</a>
-              <a href="#">Delete</a>
-              <a @click="test(item,'doing')" class="right">Next</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col s12 m6 l3">
-        <div class="card">
-          <div class="card-panel blue">
-            DOING
-          </div>
-          <div class="card" id="card" v-for="(item, id) in doing">
-            <div class="card-panel light">
-              {{item.title}}
-            </div>
-            <div class="card-content">
-              <p>Point: {{item.point}}</p>
-              <p>In Charge: {{item.assign}}</p>
-            </div>
-            <div class="card-action">
-              <a @click="test(item,'todo')" class="left">Back</a>
-              <a href="#">Delete</a>
-              <a @click="test(item,'done')" class="right">Next</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col s12 m6 l3">
-        <div class="card">
-          <div class="card-panel green">
-            DONE
-          </div>
-          <div class="card" id="card" v-for="(item, id) in done">
-            <div class="card-panel light">
-              {{item.title}}
-            </div>
-            <div class="card-content">
-              <p>Point: {{item.point}}</p>
-              <p>In Charge: {{item.assign}}</p>
-            </div>
-            <div class="card-action">
-              <a @click="test(item,'doing')" class="left">Back</a>
-              <a href="#">Delete</a>
-              <a href="#" class="right">Next</a>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Card :data="backlog" name="backlog" @remove="remove" @test="test"/>
+      <Card :data="todo" name="todo" @remove="remove" @test="test"/>
+      <Card :data="doing" name="doing" @remove="remove" @test="test"/>
+      <Card :data="done" name="done" @remove="remove" @test="test"/>
     </div>
   </div>
+  <!-- Modal Trigger -->
+ <a class="waves-effect waves-light btn modal-trigger" @click="menu">Click Me</a>
+ <!-- Modal Structure -->
+ <div id="modal1" class="modal">
+   <div class="modal-content Light-pink">
+     <p>Title :</p>
+     <input type="text" v-model='new_title'>
+     <p>Assigned to :</p>
+     <input type="text" v-model='new_assign'>
+     <p>Point :</p>
+     <input type="text" v-model='new_point'>
+   </div>
+   <div class="modal-footer">
+     <a href="#" class="modal-action modal-close waves-effect waves-Pink btn-flat" @click='submit()'>Add New Kanban</a>
+   </div>
+ </div>
+
   <footer>
     <div class="footer">
       <div class="container">
@@ -105,6 +42,7 @@
 </template>
 <script>
 // @ is an alias to /src
+import Card from "../components/Card.vue"
 import {
   kanban,
   db
@@ -116,8 +54,15 @@ export default {
     doing: [],
     done: [],
     bottomPosition: 'md-bottom-right',
-    showDialog: false
+    modal1: false,
+    name: '',
+    new_title: "",
+    new_assign: "",
+    new_point: ""
   }),
+  components:{
+    Card: Card
+  },
   created() {
     let self = this
     kanban.on('value', function(snapshot) {
@@ -135,15 +80,27 @@ export default {
           self.todo.push(value)
         } else if (value.status == 'doing') {
           self.doing.push(value)
-        } else {
+        } else if (value.status == 'done'){
           self.done.push(value)
         }
       })
     });
   },
   methods: {
-    modalDialog: function() {
-      this.showDialog = !this.showDialog
+    remove(id){
+      kanban.child(id).set(null)
+    },
+    menu () {
+      $('#modal1').openModal()
+    },
+    submit() {
+      kanban.push({
+        title: this.new_title,
+        assign: this.new_assign,
+        point: this.new_point,
+        status: 'backlog'
+      })
+      this.clearNew()
     },
     test: function(item, to) {
       kanban.child(item.id).set({
@@ -152,6 +109,11 @@ export default {
         assign: item.assign,
         status: to
       })
+    },
+    clearNew(){
+      this.new_title  = ""
+      this.new_assign = ""
+      this.new_point  = ""
     }
   }
 }
